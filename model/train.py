@@ -4,11 +4,14 @@ import os
 from datetime import datetime
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (classification_report, confusion_matrix,
-                             precision_recall_fscore_support, roc_auc_score)
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    precision_recall_fscore_support,
+    roc_auc_score,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -16,12 +19,24 @@ from sklearn.preprocessing import StandardScaler
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--input", type=str, required=True,
-                   help="Caminho do CSV. Ex: s3://bucket/data/creditcard.csv ou caminho local.")
-    p.add_argument("--output_dir", type=str, default="outputs",
-                   help="Diretório onde salvar modelo e configs.")
-    p.add_argument("--threshold", type=float, default=0.30,
-                   help="Threshold para classificar fraude.")
+    p.add_argument(
+        "--input",
+        type=str,
+        required=True,
+        help="Caminho do CSV. Ex: s3://bucket/data/creditcard.csv ou caminho local.",
+    )
+    p.add_argument(
+        "--output_dir",
+        type=str,
+        default="outputs",
+        help="Diretório onde salvar modelo e configs (fallback).",
+    )
+    p.add_argument(
+        "--threshold",
+        type=float,
+        default=0.30,
+        help="Threshold para classificar fraude.",
+    )
     p.add_argument("--test_size", type=float, default=0.2)
     p.add_argument("--random_state", type=int, default=42)
     p.add_argument("--max_iter", type=int, default=5000)
@@ -30,43 +45,55 @@ def parse_args():
 
 def main():
     args = parse_args()
-    os.makedirs(args.output_dir, exist_ok=True)
 
-# 1) Ler dados (local, S3 ou SageMaker channel)
-input_path = args.input
+    # Diretórios padrão do SageMaker (quando rodar como Training Job)
+    model_dir = os.environ.get("SM_MODEL_DIR", args.output_dir)
+    output_data_dir = os.environ.get("SM_OUTPUT_DATA_DIR", args.output_dir)
 
-if os.path.isdir(input_path):
-    # SageMaker training channel: procura o CSV dentro do diretório
-    files = [f for f in os.listdir(input_path) if f.endswith(".csv")]
-    if not files:
-        raise ValueError(f"Nenhum CSV encontrado em {input_path}")
-    input_path = os.path.join(input_path, files[0])
+    os.makedirs(model_dir, exist_ok=True)
+    os.makedirs(output_data_dir, exist_ok=True)
 
-df = pd.read_csv(input_path)
+    # 1) Ler dados (local, S3 ou SageMaker channel)
+    input_path = args.input
 
-if "Class" not in df.columns:
-    raise ValueError("CSV precisa ter a coluna 'Class' (0/1).")
+    if os.path.isdir(input_path):
+        # SageMaker training channel: procura o CSV dentro do diretório
+        files = [f for f in os.listdir(input_path) if f.endswith(".csv")]
+        if not files:
+            raise ValueError(f"Nenhum CSV encontrado em {input_path}")
+        input_path = os.path.join(input_path, files[0])
 
-X = df.drop(columns=["Class"])
-y = df["Class"]
+    df = pd.read_csv(input_path)
+
+    if "Class" not in df.columns:
+        raise ValueError("CSV precisa ter a coluna 'Class' (0/1).")
+
+    X = df.drop(columns=["Class"])
+    y = df["Class"]
 
     # 2) Split estratificado
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
+        X,
+        y,
         test_size=args.test_size,
         random_state=args.random_state,
-        stratify=y
+        stratify=y,
     )
 
     # 3) Modelo baseline (scaler + logistic)
-    pipe = Pipeline([
-        ("scaler", StandardScaler()),
-        ("lr", LogisticRegression(
-            max_iter=args.max_iter,
-            class_weight="balanced",
-            n_jobs=-1
-        ))
-    ])
+    pipe = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "lr",
+                LogisticRegression(
+                    max_iter=args.max_iter,
+                    class_weight="balanced",
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+    )
 
     pipe.fit(X_train, y_train)
 
@@ -91,7 +118,7 @@ y = df["Class"]
             "rows": int(df.shape[0]),
             "cols": int(df.shape[1]),
             "fraud_rate": float(y.mean()),
-            "test_frauds": frauds_in_test
+            "test_frauds": frauds_in_test,
         },
         "model": {
             "type": "LogisticRegression(class_weight=balanced) + StandardScaler",
@@ -100,16 +127,16 @@ y = df["Class"]
             "precision_1": float(p),
             "recall_1": float(r),
             "f1_1": float(f1),
-            "alerts": alerts
+            "alerts": alerts,
         },
         "confusion_matrix": cm,
-        "classification_report": report
+        "classification_report": report,
     }
 
     # 5) Salvar artefatos
-    model_path = os.path.join(args.output_dir, "model.joblib")
-    config_path = os.path.join(args.output_dir, "config.json")
-    metrics_path = os.path.join(args.output_dir, "metrics.json")
+    model_path = os.path.join(model_dir, "model.joblib")
+    config_path = os.path.join(model_dir, "config.json")
+    metrics_path = os.path.join(output_data_dir, "metrics.json")
 
     joblib.dump(pipe, model_path)
 
