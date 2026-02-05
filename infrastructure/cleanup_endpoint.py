@@ -26,4 +26,4 @@ sm.delete_endpoint_config(EndpointConfigName=config_name)
 print("Deleting model...")
 sm.delete_model(ModelName=model_name)
 
-print("✅ Cleanup iniciado (pode levar alguns minutos para sumir do console).")
+print("✅ Cleanup started")
