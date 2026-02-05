@@ -1,5 +1,24 @@
-outputs/
+cat > .gitignore << 'EOF'
+# Python
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
 .venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# ML artifacts / outputs
+outputs/
+*.joblib
+model.tar.gz
+
+# Logs
+*.log
+
+# AWS/SageMaker local
+.sagemaker/
+EOF
