@@ -22,3 +22,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+#python scripts/invoke_endpoint.py --endpoint fraud-lr-endpoint-XXXXX
