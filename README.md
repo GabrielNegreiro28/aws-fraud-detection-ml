@@ -11,6 +11,15 @@ The repository demonstrates how a model is:
 
 ---
 
+## Architecture Overview
+
+The diagram below shows the end-to-end workflow implemented in this project,
+from model training to real-time inference using Amazon SageMaker.
+
+![SageMaker ML Workflow](aws-fraud-detection-ml/image.png)
+
+---
+
 ## Project Motivation
 
 Fraud detection is a classic highly imbalanced classification problem, where:
