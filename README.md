@@ -127,17 +127,18 @@ It:
 
 This step validates the full pipeline from: data → model → endpoint → prediction.
 
-**Response Format**
+### Response Format
+
 The endpoint returns the predicted probability of fraud:
 
+```json
 {
   "fraud_probability": 0.01858082651184944
 }
 
-
--The value represents the probability that a transaction is fraudulent
--A classification threshold (defined during training) can be applied by downstream systems to convert this probability into a binary decision.
--This design keeps the endpoint flexible and allows business rules to be adjusted without redeploying the model.
+ -The value represents the probability that a transaction is fraudulent
+ -A classification threshold (defined during training) can be applied by downstream systems to convert this probability into a binary decision.
+ -This design keeps the endpoint flexible and allows business rules to be adjusted without redeploying the model.
 
 ---
 
