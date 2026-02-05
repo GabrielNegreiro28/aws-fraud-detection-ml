@@ -1,1 +1,2 @@
-
+boto3
+sagemaker==2.254.1
