@@ -32,13 +32,23 @@ def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # 1) Ler dados
-    df = pd.read_csv(args.input)
-    if "Class" not in df.columns:
-        raise ValueError("CSV precisa ter a coluna 'Class' (0/1).")
+# 1) Ler dados (local, S3 ou SageMaker channel)
+input_path = args.input
 
-    X = df.drop(columns=["Class"])
-    y = df["Class"]
+if os.path.isdir(input_path):
+    # SageMaker training channel: procura o CSV dentro do diretório
+    files = [f for f in os.listdir(input_path) if f.endswith(".csv")]
+    if not files:
+        raise ValueError(f"Nenhum CSV encontrado em {input_path}")
+    input_path = os.path.join(input_path, files[0])
+
+df = pd.read_csv(input_path)
+
+if "Class" not in df.columns:
+    raise ValueError("CSV precisa ter a coluna 'Class' (0/1).")
+
+X = df.drop(columns=["Class"])
+y = df["Class"]
 
     # 2) Split estratificado
     X_train, X_test, y_train, y_test = train_test_split(
