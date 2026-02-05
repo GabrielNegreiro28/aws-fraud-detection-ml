@@ -21,8 +21,8 @@ def parse_args():
     p.add_argument(
         "--input",
         type=str,
-        required=True,
-        help="Caminho do CSV. Ex: s3://bucket/data/creditcard.csv ou caminho local.",
+        default=None,
+        help="Caminho do CSV ou diretório do channel. Se vazio, usa SM_CHANNEL_TRAINING.",
     )
     p.add_argument(
         "--output_dir",
@@ -43,6 +43,11 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    if args.input is None:
+        args.input = os.environ.get("SM_CHANNEL_TRAINING")
+        if not args.input:
+            raise ValueError("Nenhum input encontrado. Passe --input ou use o channel 'training' no SageMaker.")
 
     # Diretórios padrão do SageMaker
     model_dir = os.environ.get("SM_MODEL_DIR", args.output_dir)
