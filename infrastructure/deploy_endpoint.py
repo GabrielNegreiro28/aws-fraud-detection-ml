@@ -31,4 +31,4 @@ predictor = model.deploy(
     endpoint_name=endpoint_name,
 )
 
-print("✅ Endpoint criado:", endpoint_name)
+print("✅ Endpoint created:", endpoint_name)
