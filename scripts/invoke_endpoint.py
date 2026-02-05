@@ -1,5 +1,3 @@
-mkdir -p scripts
-cat > scripts/invoke_endpoint.py << 'EOF'
 import json
 import argparse
 import boto3
@@ -23,5 +21,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-EOF
 
