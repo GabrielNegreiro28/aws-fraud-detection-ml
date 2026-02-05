@@ -134,7 +134,8 @@ The endpoint returns the predicted probability of fraud:
 ```json
 {
   "fraud_probability": 0.01858082651184944
-}```
+}
+```
 
 
 - The value represents the probability that a transaction is fraudulent
