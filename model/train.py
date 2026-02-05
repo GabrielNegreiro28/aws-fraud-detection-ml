@@ -16,7 +16,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument(
@@ -42,22 +41,20 @@ def parse_args():
     p.add_argument("--max_iter", type=int, default=5000)
     return p.parse_args()
 
-
 def main():
     args = parse_args()
 
-    # Diretórios padrão do SageMaker (quando rodar como Training Job)
+    # Diretórios padrão do SageMaker
     model_dir = os.environ.get("SM_MODEL_DIR", args.output_dir)
     output_data_dir = os.environ.get("SM_OUTPUT_DATA_DIR", args.output_dir)
 
     os.makedirs(model_dir, exist_ok=True)
     os.makedirs(output_data_dir, exist_ok=True)
 
-    # 1) Ler dados (local, S3 ou SageMaker channel)
+    # 1) Ler dados
     input_path = args.input
 
     if os.path.isdir(input_path):
-        # SageMaker training channel: procura o CSV dentro do diretório
         files = [f for f in os.listdir(input_path) if f.endswith(".csv")]
         if not files:
             raise ValueError(f"Nenhum CSV encontrado em {input_path}")
@@ -80,7 +77,7 @@ def main():
         stratify=y,
     )
 
-    # 3) Modelo baseline (scaler + logistic)
+    # 3) Modelo baseline
     pipe = Pipeline(
         [
             ("scaler", StandardScaler()),
@@ -147,13 +144,7 @@ def main():
         json.dump(metrics, f, indent=2)
 
     print("✅ Treino finalizado")
-    print("Model:", model_path)
-    print("Config:", config_path)
-    print("Metrics:", metrics_path)
-    print("\nResumo:")
-    print("ROC-AUC:", roc_auc)
-    print("Precision(1):", float(p), "Recall(1):", float(r), "Alerts:", alerts)
-
+    print(f"ROC-AUC: {roc_auc:.4f}")
 
 if __name__ == "__main__":
     main()
