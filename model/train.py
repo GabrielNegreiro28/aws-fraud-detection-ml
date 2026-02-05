@@ -49,14 +49,14 @@ def main():
         if not args.input:
             raise ValueError("Nenhum input encontrado. Passe --input ou use o channel 'training' no SageMaker.")
 
-    # Diretórios padrão do SageMaker
+    # Default SageMaker directories
     model_dir = os.environ.get("SM_MODEL_DIR", args.output_dir)
     output_data_dir = os.environ.get("SM_OUTPUT_DATA_DIR", args.output_dir)
 
     os.makedirs(model_dir, exist_ok=True)
     os.makedirs(output_data_dir, exist_ok=True)
 
-    # 1) Ler dados
+    # 1) Load data
     input_path = args.input
 
     if os.path.isdir(input_path):
@@ -73,7 +73,7 @@ def main():
     X = df.drop(columns=["Class"])
     y = df["Class"]
 
-    # 2) Split estratificado
+    # 2) Stratified split
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -82,7 +82,7 @@ def main():
         stratify=y,
     )
 
-    # 3) Modelo baseline
+    # 3) Baseline model
     pipe = Pipeline(
         [
             ("scaler", StandardScaler()),
@@ -99,7 +99,7 @@ def main():
 
     pipe.fit(X_train, y_train)
 
-    # 4) Predições e métricas
+    # 4) Predictions and metrics
     y_proba = pipe.predict_proba(X_test)[:, 1]
     y_pred = (y_proba >= args.threshold).astype(int)
 
@@ -135,7 +135,7 @@ def main():
         "classification_report": report,
     }
 
-    # 5) Salvar artefatos
+    # 5) Save artifacts
     model_path = os.path.join(model_dir, "model.joblib")
     config_path = os.path.join(model_dir, "config.json")
     metrics_path = os.path.join(output_data_dir, "metrics.json")
@@ -148,7 +148,7 @@ def main():
     with open(metrics_path, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
 
-    print("✅ Treino finalizado")
+    print("✅ Training completed")
     print(f"ROC-AUC: {roc_auc:.4f}")
 
 if __name__ == "__main__":
