@@ -16,7 +16,7 @@ The repository demonstrates how a model is:
 The diagram below shows the end-to-end workflow implemented in this project,
 from model training to real-time inference using Amazon SageMaker.
 
-![SageMaker ML Workflow](aws-fraud-detection-ml/image.png)
+![SageMaker ML Workflow](image.png)
 
 ---
 
